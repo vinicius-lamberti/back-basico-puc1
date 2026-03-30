@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 from model.livro import LivroModel
+from pydantic import Field
 
 class LivroSchema(BaseModel):
     titulo: str
@@ -27,8 +28,6 @@ class LivroPatchSchema(BaseModel):
 class LivroBuscaSchema(BaseModel):
     id: int
 
-
-from pydantic import Field
 
 class LivroViewSchema(BaseModel):
     id: int = Field(..., example=1)

@@ -22,9 +22,9 @@ class LivroModel(Base):
     def __init__(self, titulo:str, autor:str, editora:str, isbn:str, ano:int, tipo:str, idioma:str, lido:str = 'N',
                  data_insercao:Union[DateTime, None] = None):
         """
-        Cria um Livro
+        Cadastra um Livro
 
-        Arguments:
+        Camopos:
             titulo: título do livro.
             autor: autor do livro.
             editora: editora do livro.
@@ -43,6 +43,6 @@ class LivroModel(Base):
         self.tipo = tipo
         self.idioma = idioma
         self.lido = lido
-        # se não for informada, será o data exata da inserção no banco
+        # se não for informada, será o data exata da inserção do livro à base
         if data_insercao:
             self.data_insercao = data_insercao

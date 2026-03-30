@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import redirect
 
 from schemas import LivroBuscaSchema, LivroViewSchema, ListagemLivrosSchema, LivroSchema, LivroDelSchema, LivroPatchSchema, ErrorSchema
+from schemas.livro import apresenta_livros
 
 # Configuração da API
 info = Info(title="API de Livros", version="1.0.0")
@@ -22,12 +23,12 @@ book_tag = Tag(name="Livros", description="Gerenciamento da biblioteca")
 class LivroModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200), nullable=False)
-    autor = db.Column(db.String(100))
-    editora = db.Column(db.String(100))
-    isbn = db.Column(db.String(20))
-    ano = db.Column(db.Integer)
-    tipo = db.Column(db.String(50))
-    idioma = db.Column(db.String(50))
+    autor = db.Column(db.String(100), nullable=False)
+    editora = db.Column(db.String(100), nullable=False)
+    isbn = db.Column(db.String(20), nullable=False)
+    ano = db.Column(db.Integer, nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)
+    idioma = db.Column(db.String(50), nullable=False)
     lido = db.Column(db.String(1), default='N') # 'S' ou 'N'
 
 # --- Endpoints ---
@@ -42,19 +43,18 @@ def home():
 def get_livros():
     """Busca os livros cadastrados"""
     livros = LivroModel.query.all()
-    return {
-        "livros": [{
-            "id": l.id, "titulo": l.titulo, "autor": l.autor, "editora": l.editora,
-            "isbn": l.isbn, "ano": l.ano, "tipo": l.tipo, "idioma": l.idioma, "lido": l.lido
-        } for l in livros]
-    }, 200
+    return apresenta_livros(livros), 200
 
 @app.post('/livro', tags=[book_tag], responses={"201": LivroViewSchema, "400": ErrorSchema})
 def post_book(form: LivroSchema):
     """Cadastra um livro"""
 
-    if form.ano is None:
-        return {"message": "Campo 'ano' é obrigatório"}, 400
+    campos_obrigatorios = ['titulo', 'autor', 'editora', 'isbn', 'ano', 'tipo', 'idioma']
+    
+    for campo in campos_obrigatorios:
+        # getattr pega o valor do campo dentro do objeto 'form'
+        if getattr(form, campo) is None or getattr(form, campo) == "":
+            return {"message": f"Campo '{campo}' é obrigatório"}, 400
 
     novo_livro = LivroModel(
         titulo=form.titulo,
@@ -83,19 +83,21 @@ def delete_book(query: LivroBuscaSchema):
     if not livro:
         return {"message": "Livro não encontrado"}, 404
     
+    livro_titulo = livro.titulo
+    
     db.session.delete(livro)
     db.session.commit()
-    return {"message": f"Livro {query.id} removido com sucesso"}, 200
+    return {"message": f"Livro '{livro_titulo}' removido com sucesso"}, 200
 
 @app.patch('/livro', tags=[book_tag], responses={"200": LivroViewSchema, "404": ErrorSchema, "400": ErrorSchema})
 def patch_book(query: LivroBuscaSchema, form: LivroPatchSchema):
     """Atualiza o status de leitura do livro via id"""
+    if not form.lido:
+        return {"message": "Campo 'lido' é obrigatório"}, 400
+
     livro = LivroModel.query.get(query.id)
     if not livro:
         return {"message": "Livro não encontrado"}, 404
-
-    if not form.lido:
-        return {"message": "Campo 'lido' é obrigatório"}, 400
 
     livro.lido = form.lido
     db.session.commit()
