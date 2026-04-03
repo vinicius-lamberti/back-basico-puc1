@@ -3,7 +3,8 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask import redirect
 
-from schemas import LivroBuscaSchema, LivroViewSchema, ListagemLivrosSchema, LivroSchema, LivroDelSchema, LivroPatchSchema, ErrorSchema
+from schemas import LivroBuscaIdSchema, LivroViewSchema, ListagemLivrosSchema, LivroSchema, LivroDelSchema, LivroPatchSchema, ErrorSchema
+from schemas.error import ErrorSchema404, ErrorSchema409
 from schemas.livro import apresenta_livros
 
 # Configuração da API
@@ -17,15 +18,15 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 # Tag para o Swagger
-book_tag = Tag(name="Livros", description="Gerenciamento da biblioteca")
+book_tag = Tag(name="Livros", description="Gerenciamento do inventário de livros")
 
 # --- Modelo do Banco de Dados conforme a Interface ---
 class LivroModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200), nullable=False)
-    autor = db.Column(db.String(100), nullable=False)
+    autor = db.Column(db.String(200), nullable=False)
     editora = db.Column(db.String(100), nullable=False)
-    isbn = db.Column(db.String(20), nullable=False)
+    isbn = db.Column(db.String(17), nullable=False)
     ano = db.Column(db.Integer, nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     idioma = db.Column(db.String(50), nullable=False)
@@ -45,7 +46,7 @@ def get_livros():
     livros = LivroModel.query.all()
     return apresenta_livros(livros), 200
 
-@app.post('/livro', tags=[book_tag], responses={"201": LivroViewSchema, "400": ErrorSchema})
+@app.post('/livro', tags=[book_tag], responses={"201": LivroViewSchema, "400": ErrorSchema, "409": ErrorSchema409})
 def post_book(form: LivroSchema):
     """Cadastra um livro"""
 
@@ -55,6 +56,12 @@ def post_book(form: LivroSchema):
         # getattr pega o valor do campo dentro do objeto 'form'
         if getattr(form, campo) is None or getattr(form, campo) == "":
             return {"message": f"Campo '{campo}' é obrigatório"}, 400
+        
+    
+        
+    livro = LivroModel.query.filter_by(isbn=form.isbn).first()
+    if livro:
+        return {"message": "Já existe um livro com esse ISBN."}, 409
 
     novo_livro = LivroModel(
         titulo=form.titulo,
@@ -76,8 +83,8 @@ def post_book(form: LivroSchema):
         "tipo": novo_livro.tipo, "idioma": novo_livro.idioma, "lido": novo_livro.lido
     }, 201
 
-@app.delete('/livro', tags=[book_tag], responses={"200": LivroDelSchema, "404": ErrorSchema})
-def delete_book(query: LivroBuscaSchema):
+@app.delete('/livro', tags=[book_tag], responses={"200": LivroDelSchema, "404": ErrorSchema404})
+def delete_book(query: LivroBuscaIdSchema):
     """Deleta um livro via id"""
     livro = LivroModel.query.get(query.id)
     if not livro:
@@ -89,8 +96,8 @@ def delete_book(query: LivroBuscaSchema):
     db.session.commit()
     return {"message": f"Livro '{livro_titulo}' removido com sucesso"}, 200
 
-@app.patch('/livro', tags=[book_tag], responses={"200": LivroViewSchema, "404": ErrorSchema, "400": ErrorSchema})
-def patch_book(query: LivroBuscaSchema, form: LivroPatchSchema):
+@app.patch('/livro', tags=[book_tag], responses={"200": LivroViewSchema, "404": ErrorSchema404, "400": ErrorSchema})
+def patch_book(query: LivroBuscaIdSchema, form: LivroPatchSchema):
     """Atualiza o status de leitura do livro via id"""
     if not form.lido:
         return {"message": "Campo 'lido' é obrigatório"}, 400

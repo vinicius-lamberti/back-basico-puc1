@@ -1,6 +1,6 @@
 from schemas.livro import (
     LivroSchema,
-    LivroBuscaSchema,
+    LivroBuscaIdSchema,
     LivroPatchSchema,
     LivroViewSchema,
     ListagemLivrosSchema,
@@ -8,4 +8,4 @@ from schemas.livro import (
     apresenta_livro,
     apresenta_livros,
 )
-from schemas.error import ErrorSchema
+from schemas.error import ErrorSchema, ErrorSchema404, ErrorSchema409

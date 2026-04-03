@@ -25,20 +25,20 @@ class LivroPatchSchema(BaseModel):
     lido: str = Field(..., example='S')
 
 
-class LivroBuscaSchema(BaseModel):
+class LivroBuscaIdSchema(BaseModel):
     id: int
 
 
 class LivroViewSchema(BaseModel):
     id: int = Field(..., example=1)
-    titulo: str = Field(..., example="O Hobbit")
-    autor: str = Field(..., example="J. R. R. Tolkien")
-    editora: str = Field(..., example="Harper Collins")
-    isbn: str = Field(..., example="9788595084742")
-    ano: int = Field(..., example=2019)
-    tipo: str = Field(..., example="Livro")
-    idioma: str = Field(..., example="Português")
-    lido: str = Field(..., example="S")
+    titulo: str = Field(..., min_length=1, max_length=200, example="O Hobbit")
+    autor: str = Field(..., min_length=1, max_length=200, example="J. R. R. Tolkien")
+    editora: str = Field(..., min_length=1, max_length=100, example="Harper Collins")
+    isbn: str = Field(..., min_length=1, max_length=17, example="9788595084742")
+    ano: int = Field(..., ge=1, le=2200, example=2019)
+    tipo: str = Field(..., min_length=1, max_length=50, example="Livro")
+    idioma: str = Field(..., min_length=1, max_length=50, example="Português")
+    lido: str = Field(..., pattern="^[SN]$", example="S")
 
 
 class ListagemLivrosSchema(BaseModel):
