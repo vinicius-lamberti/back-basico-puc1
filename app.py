@@ -86,7 +86,7 @@ def post_book(form: LivroSchema):
 @app.delete('/livro', tags=[book_tag], responses={"200": LivroDelSchema, "404": ErrorSchema404})
 def delete_book(query: LivroBuscaIdSchema):
     """Deleta um livro via id"""
-    livro = LivroModel.query.get(query.id)
+    livro = db.session.get(LivroModel, query.id)
     if not livro:
         return {"message": "Livro não encontrado"}, 404
     
@@ -102,7 +102,7 @@ def patch_book(query: LivroBuscaIdSchema, form: LivroPatchSchema):
     if not form.lido:
         return {"message": "Campo 'lido' é obrigatório"}, 400
 
-    livro = LivroModel.query.get(query.id)
+    livro = db.session.get(LivroModel, query.id)
     if not livro:
         return {"message": "Livro não encontrado"}, 404
 
