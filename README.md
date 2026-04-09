@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 4. Executar o projeto com o comando:
 
-python3 app.py
+python3 -m flask run --host 0.0.0.0 --port 5000
 
 # Como acessar a documentação
-Através da url (substituir o 5000 caso seu projeto seja executado em outra porta): http://127.0.0.1:5000/openapi/swagger#/
+Através da url: http://127.0.0.1:5000/openapi/swagger#/

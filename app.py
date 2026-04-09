@@ -18,6 +18,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 # Tag para o Swagger
+home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger")
 book_tag = Tag(name="Livros", description="Gerenciamento do inventário de livros")
 
 # --- Modelo do Banco de Dados conforme a Interface ---
@@ -34,7 +35,7 @@ class LivroModel(db.Model):
 
 # --- Endpoints ---
 
-@app.get('/', tags=[book_tag])
+@app.get('/', tags=[home_tag])
 def home():
     """Redireciona para /openapi, tela que permite a escolha do estilo de documentação."""
     return redirect('/openapi')
@@ -115,7 +116,8 @@ def patch_book(query: LivroBuscaIdSchema, form: LivroPatchSchema):
         "tipo": livro.tipo, "idioma": livro.idioma, "lido": livro.lido
     }, 200
 
-if __name__ == "__main__":
-    with app.app_context():
+with app.app_context():
         db.create_all()
+
+if __name__ == "__main__":
     app.run(debug=True)
