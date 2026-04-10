@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "/home/vinicius/github/back-basico-puc1/venv/bin/python",
+    "python.analysis.extraPaths": ["."]
+}
